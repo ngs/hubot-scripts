@@ -1,7 +1,7 @@
 # Description:
 #   Manage your links and bookmarks. Links get stored in the robot brain while
 #   bookmarks get stored at delicious.com. Also keeps a history of all URLs in
-#   the "urls" section of the robot brain. 
+#   the "urls" section of the robot brain.
 #
 # Dependencies:
 #   "xml2js": "0.1.14"
@@ -27,7 +27,7 @@ module.exports = (robot) ->
 
   robot.respond /list bookmarks/i, (msg) ->
     delicious = new Delicious msg, process.env.DELICIOUS_USER, process.env.DELICIOUS_PASSWORD
-  
+
     delicious.listBookmarks (err, message) ->
       if err?
         msg.send "#{err}"
@@ -39,71 +39,45 @@ module.exports = (robot) ->
     url = msg.match[1]
     description = msg.match[3]
     bookmark = new Bookmark url, description
-    
+
     delicious.createBookmark bookmark, (err, message) ->
       if err?
         msg.send "#{err}"
       else
-        msg.send "#{message}" 
-        
+        msg.send "#{message}"
+
   robot.respond /link (http(s?)\:\/\/\S+) as (.+)/i, (msg) ->
     url = msg.match[1]
-    description = msg.match[3]    
+    description = msg.match[3]
     bookmark = new Bookmark url, description
     link = new Link robot
-  
+
     link.add bookmark, (err, message) ->
       if err?
         msg.reply "I have a vague memory of hearing about that link sometime in the past."
       else
-        msg.reply "I've stuck that link into my robot brain." 
-        
+        msg.reply "I've stuck that link into my robot brain."
+
   robot.respond /link me for (.+)/i, (msg) ->
     description = msg.match[1]
     link = new Link robot
-    
+
     link.find description, (err, bookmark) ->
       if err?
         msg.send "#{err}"
       else
         msg.send bookmark.url
-           
+
   robot.respond /list links/i, (msg) ->
     link = new Link robot
-    
+
     link.list (err, message) ->
-      if err?   
-        msg.reply "Links? What links? I don't remember any links."       
+      if err?
+        msg.reply "Links? What links? I don't remember any links."
       else
         msg.reply message
 
-  robot.hear /(http(s?)\:\/\/\S+)/i, (msg) ->
-    href = msg.match[1]
-    url = new Url robot
-
-    url.add href, (err, message) ->
-      if err?
-        console.log "#{href} : #{err}"
-
 # Classes
-
-class Url
-  constructor: (robot) ->
-    robot.brain.data.urls ?= []
-    @urls_ = robot.brain.data.urls
-
-  all: (url) ->
-    if url
-      @urls_.push url
-    else
-      @urls_
-
-  add: (url, callback) ->
-    if url in @all()
-      callback "Url already exists"
-    else
-      @all url
-      callback null, "Url added"
 
 class Bookmark
   constructor: (url, description) ->
@@ -137,7 +111,7 @@ class Link
       callback "Bookmark already exists"
     else
       @all bookmark
-      callback null, "Bookmark added"    
+      callback null, "Bookmark added"
 
   list: (callback) ->
     if @all().length > 0
@@ -145,7 +119,7 @@ class Link
       for bookmark in @all()
         if bookmark
           resp_str += bookmark.description + " (" + bookmark.url + ")\n"
-      callback null, resp_str    
+      callback null, resp_str
     else
       callback "No bookmarks exist"
 
